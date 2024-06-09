@@ -1,37 +1,42 @@
-
 <!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>PRIMEROS PASOS CON BRACKETS</title>
+    <title>JUEGO CARRITO</title>
     <meta name="description" content="Una guía interactiva de primeros pasos para Brackets.">
     <style>
         canvas {
             border: 1px solid blue;
         }
-  img {
-    position: absolute;
-    /* Ajusta la posición vertical y horizontal según necesites */
-}
 
+        img {
+            position: absolute;
+            /* Ajusta la posición vertical y horizontal según necesites */
+        }
     </style>
 </head>
 
 <body>
 
-    <h1>practica</h1>
-    <canvas id="lienzo" width="1000" height="600"></canvas>
-    <img src="cactus.png" alt="logo" width="170" height="100">
-    <img id="carrito" src="carrito2.jpg.png" alt="logo" width="170" height="100" style="top: 580px; left: 450px;">
-
+    <canvas id="lienzo" width="1560" height="750"></canvas>
+    <img id="tanque" src="tanque3.png" alt="logo" width="50" height="60" style="top: 300px; left: 670px;">
+    <img id="carrito" src="carrito2.jpg.png" alt="logo" width="170" height="100" style="top: 660px; left: 650px;">
+    <img id="persona" src="persona.png" alt="logo" width="200" height="100" style="top: 280px; left: 660px;">
     <script>
         var lienzo = document.getElementById("lienzo");
         var dibujo = lienzo.getContext("2d");
 
+        var carrito = document.getElementById("carrito");
+        var persona = document.getElementById("persona");
+        var carritoX = parseInt(carrito.style.left); // Posición horizontal del carrito
+        var personaX = parseInt(persona.style.left); // Posición horizontal de la persona
+        var personaY = parseInt(persona.style.top); // Posición vertical de la persona
+        var movimiento = 10; // Cantidad de movimiento en píxeles
+        var gameOver = false;
+
         var cactus = [
-            { x: 200, y: 350, width: 170, height: 100 },
             { x: 800, y: 400, width: 170, height: 100 },
             // Agrega más objetos aquí si deseas más cactus
         ];
@@ -40,7 +45,7 @@
         for (var i = 0; i < cactus.length; i++) {
             var cact = cactus[i];
             var img = new Image();
-            img.onload = function() {
+            img.onload = function () {
                 dibujo.drawImage(img, cact.x, cact.y, cact.width, cact.height);
             };
             img.src = 'cactus.png'; // Ruta de la imagen del cactus
@@ -64,39 +69,39 @@
         gr.addColorStop(0, "#FF6500");
         gr.addColorStop(1, "#FFBF78");
         dibujo.fillStyle = gr;
-        dibujo.fillRect(0, 260, 1000, 600); // Ajusta el segundo valor (400)
+        dibujo.fillRect(0, 260, 1560, 750); // Ajusta el segundo valor (400)
 
         dibujo.fillStyle = "#808080"; // Color gris
-        dibujo.fillRect(450, 259, 150, 800); // Carretera gris entre x=450 y x=550
+        dibujo.fillRect(650, 259, 150, 800); // Carretera gris entre x=450 y x=550
 
-        var gradiente = dibujo.createRadialGradient(500, 100, 50, 500, 100, 100);
+        var gradiente = dibujo.createRadialGradient(400, 100, 50, 400, 100, 100);
         gradiente.addColorStop(0, "rgba(255, 250, 0, 0)"); // Amarillo opaco (255, 255, 0, 0)
         gradiente.addColorStop(1, "rgba(255, 250, 0, 1)"); // Amarillo sólido (255, 255, 0, 1)
         dibujo.fillStyle = gradiente;
         dibujo.beginPath();
-        dibujo.arc(500, 100, 100, 0, Math.PI * 2, true);
+        dibujo.arc(400, 100, 100, 0, Math.PI * 2, true);
         dibujo.closePath();
         dibujo.fill();
 
         dibujo.fillStyle = "#FFC100";
         dibujo.beginPath();
-        dibujo.arc(500, 100, 54, 50, Math.PI * 2, true);
+        dibujo.arc(400, 100, 54, 50, Math.PI * 2, true);
         dibujo.closePath();
         dibujo.fill();
 
         // Agregar líneas negras dentro del área gris
         dibujo.fillStyle = "#000000"; // Color negro
-        dibujo.fillRect(520, 280, 10, 50); // Línea negra vertical a la derecha
+        dibujo.fillRect(720, 280, 10, 50); // Línea negra vertical a la derecha
 
         // Agregar tres líneas más
-        for (var i = 0; i < 3; i++) {
-            dibujo.fillRect(520, 340 + i * 80, 10, 50); // Línea negra vertical a la derecha
+        for (var i = 0; i < 4; i++) {
+            dibujo.fillRect(720, 340 + i * 80, 10, 50); // Línea negra vertical a la derecha
         }
 
         // Definir las coordenadas y tamaños de los círculos para simular nubes
         var clouds = [
-            { x: 400, y: 50, radius: 30 },
-            { x: 550, y: 80, radius: 40 },
+            { x: 300, y: 50, radius: 30 },
+            { x: 470, y: 80, radius: 40 },
             // Agrega más objetos aquí si deseas más nubes
         ];
 
@@ -110,6 +115,79 @@
             dibujo.fill();
         }
 
+        function moverPersona() {
+            // Mover la persona hacia abajo
+            personaY += movimiento;
+            persona.style.top = personaY + "px";
+
+            // Verificar colisión con el carrito
+            if (personaY + persona.height >= 660 &&
+                personaX + persona.width >= carritoX &&
+                personaX <= carritoX + carrito.width) {
+                gameOver = true;
+                clearInterval(intervaloPersona);
+                clearInterval(intervaloJuego);
+                alert("¡Has perdido!");
+                reiniciarJuego();
+            }
+        }
+
+        function reiniciarJuego() {
+            personaX = parseInt(persona.style.left); // Restablecer posición horizontal de la persona
+            personaY = parseInt(persona.style.top); // Restablecer posición vertical de la persona
+            gameOver = false; // Reiniciar estado del juego
+            iniciarMovimiento(); // Comenzar de nuevo el movimiento
+        }
+
+
+        function iniciarMovimiento() {
+            intervaloPersona = setInterval(moverPersona, 500); // Iniciar el movimiento de la persona
+        }
+        iniciarMovimiento();
+
+        document.addEventListener("keydown", function (event) {
+            if (!gameOver) { // Si el juego no ha terminado
+                // Flecha izquierda
+                if (event.keyCode === 39) {
+                    carritoX -= movimiento; // Mover hacia la izquierda
+                    if (carritoX < 650) {
+                        carritoX = 720;
+                    }
+                    carrito.style.left = carritoX + "px"; // Actualizar posición horizontal del carrito
+                }
+                // Flecha derecha
+                else if (event.keyCode === 37) {
+                    carritoX += movimiento; // Mover hacia la derecha
+                    if (carritoX + carrito.width > 750) {
+                        carritoX = 750 - carrito.width;
+                    }
+                    carrito.style.left = carritoX + "px"; // Actualizar posición horizontal del carrito
+                }
+            }
+        });
+       
+        document.addEventListener("keydown", function(event) {
+            if (!gameOver) {
+                // Flecha izquierda
+                if (event.keyCode === 39) {
+                    carritoX -= movimiento;
+                    if (carritoX < 650) {
+                        carritoX = 720;
+                    }
+                    carrito.style.left = carritoX + "px";
+                }
+                // Flecha derecha
+                else if (event.keyCode === 37) {
+                    carritoX += movimiento;
+                    if (carritoX + carrito.width > 750) {
+                        carritoX = 750 - carrito.width;
+                    }
+                    carrito.style.left = carritoX + "px";
+                }
+            }
+        });
+
+       
     </script>
 </body>
 
